@@ -1,5 +1,7 @@
 const asyncHandler = require('express-async-handler');
 
+const Goal = require('../../server/models/goal');
+
 const goals = {
 
     /***
@@ -8,7 +10,8 @@ const goals = {
      * @access Private
      */
     get: asyncHandler(async (req, res) => {
-        res.status(200).json({ message: "Get goles" });
+        const goals = await Goal.find();
+        res.status(200).json(goals);
     }),
 
     /***
@@ -18,7 +21,14 @@ const goals = {
      */
     get_one: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        res.status(200).json({ message: `Get gole: ${id}` });
+        const goal = await Goal.findById(id);
+
+        if (!goal) {
+            res.status(404);
+            throw new Error('Goal not found!');
+        }
+
+        res.status(200).json(goal);
     }),
 
     /***
@@ -27,7 +37,16 @@ const goals = {
      * @access Private
      */
     post: asyncHandler(async (req, res) => {
-        res.status(201).json({ message: "Get goles" });
+        console.log(req.body);
+        if (!req.body.text) {
+            res.status(422);
+            throw new Error('Please add a text field');
+        }
+
+        const goal = await Goal.create({
+            text: req.body.text
+        });
+        res.status(201).json(goal);
     }),
 
     /***
@@ -37,11 +56,15 @@ const goals = {
      */
     put: asyncHandler(async (req, res) => {
         const { id } = req.params;
-        if (!req.body.text) {
-            res.status(422);
-            throw new Error('Please add a text field');
+        const goal = await Goal.findById(id);
+
+        if (!goal) {
+            res.status(404);
+            throw new Error('Goal not found!');
         }
-        res.status(202).json({ message: `Put gole: ${id}` });
+
+        const updatedGoal = await Goal.findByIdAndUpdate(id, req.body, { new: true });
+        res.status(202).json(updatedGoal);
     }),
 
     /***
@@ -50,8 +73,16 @@ const goals = {
      * @access Private
      */
     delete: asyncHandler(async (req, res) => {
-        // const { id } = req.params;
-        res.status(204).send();
+        const { id } = req.params;
+        const goal = await Goal.findById(id);
+
+        if (!goal) {
+            res.status(404);
+            throw new Error('Goal not found!');
+        }
+
+        await goal.remove();
+        res.status(202).json({ id });
     }),
 
 };
