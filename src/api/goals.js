@@ -37,7 +37,6 @@ const goals = {
      * @access Private
      */
     post: asyncHandler(async (req, res) => {
-        console.log(req.body);
         if (!req.body.text) {
             res.status(422);
             throw new Error('Please add a text field');
